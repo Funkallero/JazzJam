@@ -41,16 +41,20 @@ class Start:
                     r_music = load(music)
                     str_music = loads(r_music)
             except FileNotFoundError:
-                print('\nDownloading .ZIP, ~200MB\n\nPlease Wait. It can take a few minutes..')
-                gdd.download_file_from_google_drive(file_id='1n5o3FiGzPdHSfM6JDBN8IqCXxb8JaVET', dest_path='./m.zip')
-                with ZipFile("m.zip","r") as zip_ref:
-                    zip_ref.extractall()
+                choice = input('\nDownload files required. ~200MB.\n\n[1] Continue & Download\n[2] Abort & Exit (alternatively, use online-version)\n\nEnter Here: ')
+                if int(choice) == 1:
+                    print('\nDownloading .ZIP.\n\nPlease Wait. It can take a few minutes..')
+                    gdd.download_file_from_google_drive(file_id='1n5o3FiGzPdHSfM6JDBN8IqCXxb8JaVET', dest_path='./m.zip')
+                    with ZipFile("m.zip","r") as zip_ref:
+                        zip_ref.extractall()
 
-                remove("m.zip")
-                
-                with open('m/music.json') as music:
-                    r_music = load(music)
-                    str_music = loads(r_music)
+                    remove("m.zip")
+                    
+                    with open('m/music.json') as music:
+                        r_music = load(music)
+                        str_music = loads(r_music)
+                else:
+                    exit()  
                     
         return str_music
 
