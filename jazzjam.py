@@ -8,6 +8,7 @@ https://studiojams.com/
 from tkinter import Tk, Canvas, Frame, Button, Text, mainloop, INSERT, DISABLED, BOTTOM
 from json import load, loads
 from random import randint
+from time import sleep
 from zipfile import ZipFile
 from os import remove, system
 
@@ -20,17 +21,19 @@ except ImportError:
     system('python -m pip install -r requirements.txt')
 
 class Start:
-    def __init__(self):
+    def __init__(self, master):
+        self.master = master
         self.HEIGHT = 150
         self.WIDTH = 500
         self.default_C = '#060606'
-        self.pick_tune()
+        self.read()
 
     def read(self):
         try:
             with open('m/music.json') as music:
                 r_music = load(music)
-                str_music = loads(r_music)
+                self.str_music = loads(r_music)
+                self.pick_tune()
         except FileNotFoundError:
             try:
                 with ZipFile("m.zip","r") as zip_ref:
@@ -39,31 +42,46 @@ class Start:
                 remove("m.zip")
                 with open('m/music.json') as music:
                     r_music = load(music)
-                    str_music = loads(r_music)
-            except FileNotFoundError:
-                choice = input('\nDownload files required. ~200MB.\n\n[1] Continue & Download\n[2] Abort & Exit (alternatively, use online-version)\n\nEnter Here: ')
-                if int(choice) == 1:
-                    print('\nDownloading .ZIP.\n\nPlease Wait. It can take a few minutes..')
-                    gdd.download_file_from_google_drive(file_id='1n5o3FiGzPdHSfM6JDBN8IqCXxb8JaVET', dest_path='./m.zip')
-                    with ZipFile("m.zip","r") as zip_ref:
-                        zip_ref.extractall()
+                    self.str_music = loads(r_music)
+                    self.pick_tune()
 
-                    remove("m.zip")
-                    
-                    with open('m/music.json') as music:
-                        r_music = load(music)
-                        str_music = loads(r_music)
-                else:
-                    exit()  
-                    
-        return str_music
+            except FileNotFoundError:
+                self.temp_ui()
+                try:
+                    if input() == None: # if this is not here, the temp_ui wont show for some reason
+                        exit()
+                    else:
+                        exit()
+                except AttributeError:
+                    print('\nSomething went wrong..')
+                    exit()
+
+    def downloader(self):
+        gdd.download_file_from_google_drive(file_id='1n5o3FiGzPdHSfM6JDBN8IqCXxb8JaVET', dest_path='./m.zip')
+        with ZipFile("m.zip","r") as zip_ref:
+            zip_ref.extractall()
+        remove("m.zip")
+        
+        with open('m/music.json') as music:
+            r_music = load(music)
+            self.str_music = loads(r_music)
+        
+        sleep(0.5)
+        self.temp_frame2.destroy()
+        self.text_info2.destroy()
+        self.temp_frame.destroy()
+        self.text_info.destroy()
+        self.canvas.destroy()
+        self.temp_main_frame.destroy()
+        sleep(0.5)
+        self.pick_tune()
+        self.maingui()
 
     def ranint(self, length):
         return randint(0, length-1)
 
     def pick_tune(self):
-        self.music = self.read()
-        self.music = self.music['music']
+        self.music = self.str_music['music']
         self.randint = self.ranint(len(self.music))
         
         if not self.music[self.randint]['mp_link'] == None:
@@ -94,10 +112,9 @@ class Start:
 
 class GuiMain(Start):
     def __init__(self, master):
-        super().__init__()
-        """Acts as the Main Menu"""
-        self.master = master
-        # Generate Canvas
+        super().__init__(master)
+
+    def maingui(self):
         self.canvas = Canvas(self.master, bg=self.default_C, height=self.HEIGHT, width=self.WIDTH)
         self.canvas.pack()
         # Generate Frame
@@ -107,22 +124,27 @@ class GuiMain(Start):
         self.vid_frame = Frame(self.master, bg=self.default_C)
         self.vid_frame.place(relx=0, rely=0, relwidth=1, relheight=0.872)
         self.vid_text_info = Text(self.vid_frame, bg='#070707', bd=5, exportselection=0, fg='#196619', height=self.HEIGHT, width=self.WIDTH)
-        self.vid_text_info.insert(INSERT, str(self.pl_str))
+        try:       
+            self.vid_text_info.insert(INSERT, str(self.pl_str))
+        except AttributeError:
+            self.vid_text_info.insert(INSERT, '\nError reading name of tune.\n\nTry clicking "New"..')
         self.vid_text_info.config(state=DISABLED)
         self.vid_text_info.pack()
 
-        self.add_frame= Frame(self.master, bg='white')
+        self.add_frame= Frame(self.master)
         self.add_frame.place(relx=0, rely=0.85, relwidth=1, relheight=0.15)
 
         self.playstop_but = Button(self.add_frame, text="Start/Stop", bg='#070707', fg='#196619', command=self.toggle_pause_command)
         self.new_but = Button(self.add_frame, text="New", bg='#070707', fg='#196619', command=self.new_command)
         self.vol_up_but = Button(self.add_frame, text="Volume +", bg='#070707', fg='#196619',  command=self.vol_up_command) 
         self.vol_down_but = Button(self.add_frame, text="Volume -", bg='#070707', fg='#196619', command=self.vol_down_command)
+        self.exit_but = Button(self.add_frame, text="Quit", bg='#070707', fg='#196619', command=self.temp_abort)
 
-        self.playstop_but.grid(row=0, column=1, ipadx=37)
-        self.new_but.grid(row=0, column=2, ipadx=37)
-        self.vol_up_but.grid(row=0, column=3, ipadx=37)
-        self.vol_down_but.grid(row=0, column=4, ipadx=37)
+        self.playstop_but.grid(row=0, column=1, ipadx=25)
+        self.new_but.grid(row=0, column=2, ipadx=25)
+        self.vol_up_but.grid(row=0, column=3, ipadx=25)
+        self.vol_down_but.grid(row=0, column=4, ipadx=25)
+        self.exit_but.grid(row=0, column=5, ipadx=25)
 
     def update(self):
         self.new_frame = Frame(self.master, bg=self.default_C)
@@ -131,6 +153,46 @@ class GuiMain(Start):
         self.new_text_info.insert(INSERT, str(self.pl_str))
         self.new_text_info.config(state=DISABLED)
         self.new_text_info.pack()
+
+    def temp_ui(self):
+        self.canvas = Canvas(self.master, bg=self.default_C, height=150, width=350)
+        self.canvas.pack()
+        # Generate Frame
+        self.temp_main_frame = Frame(self.master, bg=self.default_C)
+        self.temp_main_frame.place(relx=1, rely=1, relwidth=1, relheight=1)
+
+        self.temp_frame = Frame(self.master, bg=self.default_C)
+        self.temp_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self.text_info = Text(self.temp_frame, bg='#070707', bd=5, exportselection=0, fg='#196619', height=self.HEIGHT, width=self.WIDTH)
+        self.text_info.insert(INSERT, '\nYou need local files to start.\n\nContinue with download of ~200MB?\n\n(alternatively, use online-version)')
+        self.text_info.config(state=DISABLED)
+        self.text_info.pack()
+
+        add_t_frame= Frame(self.master)
+        add_t_frame.place(relx=0, rely=0.85, relwidth=1, relheight=0.15)
+        
+        self.choice_yes = Button(add_t_frame, text="Download", bg='#373737', fg='#196619', command=self.temp_con)
+        self.choice_no = Button(add_t_frame, text="Abort", bg='#373737', fg='#196619', command=self.temp_abort)
+
+        self.choice_yes.grid(row=0, column=1, ipadx=64)
+        self.choice_no.grid(row=0, column=2, ipadx=64)
+
+    def temp_con(self):
+        self.choice_yes.destroy()
+        self.choice_no.destroy()
+        self.temp_frame2 = Frame(self.master, bg=self.default_C)
+        self.temp_frame2.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self.text_info2 = Text(self.temp_frame2, bg='#070707', bd=5, exportselection=0, fg='#196619', height=self.HEIGHT, width=self.WIDTH)
+        self.text_info2.insert(INSERT, '\nDownloading ZIP. ~200MB.\n\nPlease Wait.\n\nIt can take a few minutes..')
+        self.text_info2.config(state=DISABLED)
+        self.text_info2.pack()
+        self.text_info2.update()
+
+        sleep(0.5)
+        self.downloader()
+
+    def temp_abort(self):
+        return exit()
 
     def new_command(self):
         self.player.close_player()
@@ -150,8 +212,7 @@ if __name__ == '__main__':
     root = Tk()
     root.title('JazzJam')
     root.iconbitmap('j_for_jazz.ico')
-    initiater = GuiMain(root)
     root.resizable(False, False)
+    initiater = GuiMain(root)
+    initiater.maingui()
     root.mainloop()
-
-
