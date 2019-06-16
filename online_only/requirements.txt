@@ -1,0 +1,4 @@
+ffpyplayer==4.2.0
+pafy==0.5.4
+python-vlc==3.0.6109
+youtube_dl==2019.06.08
