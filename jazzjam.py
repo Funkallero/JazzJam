@@ -2,6 +2,11 @@
 Just having some fun in Python.
 //christianlindeneg, June, 2019//
 
+todo:
+implement easy choice of song
+implement rewind/fast-forward
+continuously update download progress
+
 Thanks for jams & music:
 https://studiojams.com/
 """
@@ -57,7 +62,7 @@ class Start:
                     exit()
 
     def downloader(self):
-        gdd.download_file_from_google_drive(file_id='1n5o3FiGzPdHSfM6JDBN8IqCXxb8JaVET', dest_path='./m.zip')
+        gdd.download_file_from_google_drive(file_id='15rTJbGq5mD-bnkZoofvO2n6-c5O9_NNK', dest_path='./m.zip', showsize=True)
         with ZipFile("m.zip","r") as zip_ref:
             zip_ref.extractall()
         remove("m.zip")
@@ -65,15 +70,14 @@ class Start:
         with open('m/music.json') as music:
             r_music = load(music)
             self.str_music = loads(r_music)
-        
-        sleep(0.5)
+
         self.temp_frame2.destroy()
         self.text_info2.destroy()
         self.temp_frame.destroy()
         self.text_info.destroy()
         self.canvas.destroy()
         self.temp_main_frame.destroy()
-        sleep(0.5)
+
         self.pick_tune()
         self.maingui()
 
@@ -164,7 +168,7 @@ class GuiMain(Start):
         self.temp_frame = Frame(self.master, bg=self.default_C)
         self.temp_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
         self.text_info = Text(self.temp_frame, bg='#070707', bd=5, exportselection=0, fg='#196619', height=self.HEIGHT, width=self.WIDTH)
-        self.text_info.insert(INSERT, '\nYou need local files to start.\n\nContinue with download of ~200MB?\n\n(alternatively, use online-version)')
+        self.text_info.insert(INSERT, '\nYou need local files to start.\n\nContinue with download of ~240MB?\n\n(alternatively, use online-version)')
         self.text_info.config(state=DISABLED)
         self.text_info.pack()
 
@@ -183,12 +187,11 @@ class GuiMain(Start):
         self.temp_frame2 = Frame(self.master, bg=self.default_C)
         self.temp_frame2.place(relx=0, rely=0, relwidth=1, relheight=1)
         self.text_info2 = Text(self.temp_frame2, bg='#070707', bd=5, exportselection=0, fg='#196619', height=self.HEIGHT, width=self.WIDTH)
-        self.text_info2.insert(INSERT, '\nDownloading ZIP. ~200MB.\n\nPlease Wait.\n\nIt can take a few minutes..')
+        self.text_info2.insert(INSERT, '\nDownloading ZIP. ~240MB.\n\nPlease Wait.\n\nIt can take a few minutes..\nWill automatically re-open when ready.')
         self.text_info2.config(state=DISABLED)
         self.text_info2.pack()
         self.text_info2.update()
 
-        sleep(0.5)
         self.downloader()
 
     def temp_abort(self):
